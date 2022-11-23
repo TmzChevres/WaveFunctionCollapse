@@ -22,7 +22,9 @@ To generate a world methods must be called in the following order order:
 3. OPTIONAL - generateTile(int x, int y)
 4. generateWorld()
 
-
+createWorld(int worldWidth, int worldHeight)
+- Creates a matrix (ArrayList<ArrayList<Set<BaseTile>>> map) to generate the world in.
+- Each spot in map will contains the set of all BaseTiles (tileSet.getTileSet())
 
 ## DEBUG MODE
 IMPORTANT - size() must be called within settings(){} not setup(){} on the main tab of the sketch (or just delete the debugger)
