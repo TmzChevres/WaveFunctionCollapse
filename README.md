@@ -23,7 +23,7 @@ To generate a world methods must be called in the following order order:
 4. generateWorld()
 
 createWorld(int worldWidth, int worldHeight)
-- Creates a matrix (ArrayList<ArrayList<Set<BaseTile>>> map) to generate the world in.
+- Creates a matrix (ArrayList<ArrayList<Set<BaseTile<thisIsOnlyHereForSyntax>>>> map) to generate the world in.
 - Each spot in map will contains the set of all BaseTiles (tileSet.getTileSet())
 
 ## DEBUG MODE
