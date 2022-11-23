@@ -1,0 +1,33 @@
+{
+    "name":"String - Tile set name []",
+    "description":"String - Description of the tile set []",
+
+    "tiles":[
+        {
+            "id":"int - value to recognize tile by [-1]",
+            "name":"String - name of the tile []",
+            "weight":"int - probability weight to choose this tile if eligable [1]",
+            "texture":{
+                "source":"String - image file to display at the tile [null.png]",
+                "tiles":"int - amount of tile variations in the source image [1]",
+                "weight":"int[] - probability to display each texture for the tile to display, if weight.length < tiles.length, the rest of the weights will have a weight of 1"
+            },
+            "sockets":{
+                "up":"int - type of link that can be made on the top side [0], having a negaitve value is the mirrored version",
+                "down":"int - link on the bottom side [0]",
+                "left":"int - link on the left side [0]",
+                "right":"int - link on the right side [0]"
+            },
+            "mirrorX":"boolean - if the tile can be mirrored horizontally to make a new tile [false], mirroring may affect weight on symmetrical tiles",
+            "mirrorY":"boolean - if the tile can be mirrored verticalle to make a new tile [false]",
+            "rotate":"boolean - if the tile can be rotated to make a new tile [false], when rotateing from left face to top or right to bottom, socket value mirrors"
+        }
+    ],
+    "sockets":[
+        {
+            "id":"int - should match spot in sockets[], or else it will override other sockets [default value will be index in sockets[]], a negative value is the same socket mirrored",
+            "description":"not necessary, used for readability",
+            "symmetry":"bool - if the tile face can be mirrored and still connect [false]"
+        }
+    ]
+}
