@@ -21,6 +21,7 @@ class WorldGen extends Thread{
   //returns false if tileSet is not loaded (and will not generate map), true otherwise
   public boolean createWorld(int worldWidth, int worldHeight){
     if(!tileSet.loaded) return false;
+    try{
     for(int x=0; x<worldWidth; x++){
       map.add(new ArrayList<Set<BaseTile>>());
       for(int y=0; y<worldHeight; y++){
@@ -28,6 +29,11 @@ class WorldGen extends Thread{
       }
     }
     return true;
+    }
+    catch(Exception e){
+      println("Something went wrong...\n"+e);
+      return false;
+    }
   }
   //returns the tileSet in map at [x][y]
   public Set<BaseTile> getSet(int x, int y){
