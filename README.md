@@ -15,6 +15,16 @@ public WorldGen(File tileSetDir)
 - ex. WolrdGen world = new WorldGen(new File("data/TileSets/Default")) will use the JSON file at /data/TileSets/Default/config.json
 
 
+### Variables:
+TileSet tileSet
+- Set of all possible BaseTiles to generate the world from
+- Loaded from a config.json file
+
+ArrayList\<ArrayList\<Set\<BaseTile\>\>\> map
+- Matrix of Sets of tiles
+- Each Set contains all possible Tiles that can generate in that spot on the map
+- set.size()==1 represents a completely collapsed Tile, when the world is fully generated all sets in map will have a size of 1
+
 ### Methods:
 To generate a world methods must be called in the following order order:
 1. createWorld(int worldWidth, int worldHeight)
@@ -35,6 +45,8 @@ public void addCol(), addCol(int i)
 - Adds a column to map at the end or at index i
 - Each spot in the new column will contain the set of all BaseTiles (tileSet.getTileSet())
 
+public Set\<BaseTile\> getSet(int x, int y)
+- Returns the Set at map[x][y]
 
 
 
