@@ -33,7 +33,7 @@ To generate a world methods must be called in the following order order:
 3. OPTIONAL - generateTile(int x, int y)
 4. generateWorld()
 
-**public boolean createWorld(int worldWidth, int worldHeight)**
+<br>**public boolean createWorld(int worldWidth, int worldHeight)**
 - Creates a matrix (ArrayList\<ArrayList\<Set\<BaseTile\>\>\> map) to generate the world in.
 - Each spot in map will contains the set of all BaseTiles (tileSet.getTileSet())
 - Returns false if the tileSet is not fully loaded yet or if it hits an error while generating, true otherwise
@@ -64,9 +64,9 @@ To generate a world methods must be called in the following order order:
 
 
 ## DEBUG MODE
-IMPORTANT - size() must be called within settings(){} not setup(){} on the main tab of the sketch (or just delete the debugger)
+**IMPORTANT - size() must be called within settings() not setup() on the main tab of the sketch (or just delete the debugger)**
 
-Call debug() or debug(int tileSize) to activate in a new PApplet
+<br>Call debug() or debug(int tileSize) to activate in a new PApplet
 Pressing keys 1-2 will display different modes
 Display Screens:
 1. Displays all possible tiles (including texture variations), mainly used to check that JSON file was read correctly
