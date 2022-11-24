@@ -5,8 +5,8 @@ import java.util.*;
 //Reads tile sets from a folder data/TileSets/
 class WorldGen extends Thread{
   //Vars for loading tile set
-  TileSet tileSet;
-  ArrayList<ArrayList<Set<BaseTile>>> map;
+  private TileSet tileSet;
+  private ArrayList<ArrayList<Set<BaseTile>>> map;
   
   //Standard constructor using String for file directory
   public WorldGen(String tileSetDir){
@@ -17,6 +17,7 @@ class WorldGen extends Thread{
     tileSet = new TileSet(tileSetDir);
   }
   
+  //WORLD GENERATION METHODS
   //creates an empty array for the world
   //returns false if tileSet is not loaded (and will not generate map), true otherwise
   public boolean createWorld(int worldWidth, int worldHeight){
@@ -82,16 +83,56 @@ class WorldGen extends Thread{
   }
   //restricts the Tile at map[x][y] to only the intersection of map[x][y] and t
   public boolean restrictTile(int x, int y, Set<BaseTile> t){
-    Set copy = new HashSet<BaseTile>(get(x,y));
+    Set<BaseTile> copy = new HashSet<BaseTile>(get(x,y));
     copy.retainAll(t);
-    if(copy.equals(t)) return false;
+    if(copy.equals(get(x,y))) return false;
     if(!copy.isEmpty()){
       get(x,y).retainAll(t);
       return true;
     }
     else return false;
   }
+  public boolean generateTile(int x, int y){
+    return false;
+  }
+  public boolean generateWorld(){
+    return false;
+  }
   
+  //TILE SELECTION METHODS
+  //returns the set of all tiles
+  public Set<BaseTile> getTileSet(){
+    return tileSet.getTileSet();
+  }
+  //returns the set of all tiles with a matching id
+  public Set<BaseTile> getTileSetByID(int id){
+    Set<BaseTile> out = new HashSet<BaseTile>();
+    for(BaseTile t:tileSet.getTileSet()) if(t.id==id) out.add(t);
+    return out;
+  }
+  //returns the set of all tiles with a matching name
+  public Set<BaseTile> getTileSetByName(String name){
+    Set<BaseTile> out = new HashSet<BaseTile>();
+    for(BaseTile t:tileSet.getTileSet()) if(t.name.equals(name)) out.add(t);
+    return out;
+  }
+  //returns the set of all tiles with the corresponding socket values (passing a value of 0 is ignored
+  public Set<BaseTile> getTileSetByEdge(int up, int down, int left, int right){
+    Set<BaseTile> out = new HashSet<BaseTile>();
+    for(BaseTile t:tileSet.getTileSet())
+      if((up==0 || t.edgeUp==up) && (down==0 || t.edgeDown==down) && (left==0 || t.edgeLeft==left) && (right==0 || t.edgeRight==right)) out.add(t);
+    return out;
+  }
+  public Set<BaseTile> getTileSetByEdgeUp(int val){   return getTileSetByEdge(val,0,0,0);}
+  public Set<BaseTile> getTileSetByEdgeDown(int val){ return getTileSetByEdge(0,val,0,0);}
+  public Set<BaseTile> getTileSetByEdgeLeft(int val){ return getTileSetByEdge(0,0,val,0);}
+  public Set<BaseTile> getTileSetByEdgeRight(int val){return getTileSetByEdge(0,0,0,val);}
+  //returns the set of all tiles that meet all of the parameters
+  public Set<BaseTile> getTileSet(int id, int upEdge, int downEdge, int leftEdge, int rightEdge){
+    Set<BaseTile> out = new HashSet<BaseTile>();
+    for(BaseTile t:getTileSetByEdge(upEdge,downEdge,leftEdge,rightEdge)) if(t.id==id) out.add(t);
+    return out;
+  }
   
   //TILESET CLASS-----------------------------------------------------------------------------------------------------------------------------------------------------
   private class TileSet extends Thread{
@@ -238,7 +279,7 @@ class WorldGen extends Thread{
       return out;
     }
     
-    public Set getTileSet(){
+    public Set<BaseTile> getTileSet(){
       if(!loaded) return null;
       Set<BaseTile> newTileSet = new HashSet<BaseTile>();
       for(BaseTile t:tiles){
@@ -515,7 +556,7 @@ class WorldGen extends Thread{
     private final int yMargin=80;
     @Override
     void settings(){
-      debugTiles = debugTiles(tileSize); //<>//
+      debugTiles = debugTiles(tileSize);
       int debugH = tileSize * int((displayHeight-yMargin)/tileSize);
       if(debugTiles.height < debugH)
         debugH=debugTiles.height;
@@ -581,7 +622,7 @@ class WorldGen extends Thread{
           }
         break;
       }
-      switch(display){ //<>//
+      switch(display){
         case 1:
           if(key=='q') tileIndex[0][0]++;
           if(key=='w') tileIndex[1][0]++;
@@ -595,7 +636,7 @@ class WorldGen extends Thread{
           if(key=='A') tileIndex[3][1]++;
           if(key=='D') tileIndex[4][1]++;
           if(key== ' '){
-          for(int i=0; i<tileIndex.length; i++) //<>//
+          for(int i=0; i<tileIndex.length; i++)
             for(int j=0; j<tileIndex[i].length; j++)
               tileIndex[i][j]=(int)random(0,100);
             if(tileIndex[0][0]%tileSet.tiles.size()==0) tileIndex[0][0]++;
@@ -606,6 +647,12 @@ class WorldGen extends Thread{
             }
           }
         break;
+      }
+    }
+    
+    void mouseClicked(){
+      switch(display){
+        case 2:
       }
     }
     
@@ -677,7 +724,6 @@ class WorldGen extends Thread{
     
     void drawMap(){
       imageMode(CORNER);
-      PImage[][] imgMap = new PImage[map.size()][map.get(0).size()];
       for(int x=0; x<map.size(); x++){
         for(int y=0; y<map.get(0).size(); y++){
           image(mapSetImg(mapTileSize,map.get(x).get(y)),x*mapTileSize,y*mapTileSize);

@@ -75,18 +75,26 @@ To generate a world methods must be called in the following order order:
 
 **public Set\<BaseTile\> getTileSetByEdge(int up, int down, int left, int right)**
 - Returns the set of all tiles with the corresponding socket values
+- Edge value of 0 is ignored
 
 **public Set\<BaseTile\> getTileSetByEdgeUp(int val)**
 - Returns the set of all tiles a matching up socket value
+- Edge value of 0 is ignored
 
 **public Set\<BaseTile\> getTileSetByEdgeDown(int val)**
 - Returns the set of all tiles a matching down socket value
+- Edge value of 0 is ignored
 
 **public Set\<BaseTile\> getTileSetByEdgeLeft(int val)**
 - Returns the set of all tiles a matching left socket value
+- Edge value of 0 is ignored
 
 **public Set\<BaseTile\> getTileSetByEdgeRight(int val)**
 - Returns the set of all tiles a matching right socket value
+
+**public Set\<BaseTile\> getTileSet(int id, int upEdge, int downEdge, int leftEdge, int rightEdge)**
+- Returns the set of all tiles that meet all of the parameters
+- Edge value of 0 is ignored
 
 ## DEBUG MODE
 **IMPORTANT - size() must be called within settings() not setup() on the main tab of the sketch (or just delete the debugger)**
