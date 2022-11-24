@@ -37,11 +37,11 @@ class WorldGen extends Thread{
     }
   }
   //returns the tileSet in map at [x][y]
-  public Set<BaseTile> getSet(int x, int y){
+  public Set<BaseTile> get(int x, int y){
     return map.get(x).get(y);
   }
   //sets the value at map[x][y] 
-  public Set<BaseTile> setSet(int x, int y, Set<BaseTile> tSet){
+  public Set<BaseTile> set(int x, int y, Set<BaseTile> tSet){
     return map.get(x).set(y,tSet);
   }
   
@@ -76,19 +76,17 @@ class WorldGen extends Thread{
   
   //restricts the Tile at [x][y] to a single state
   public boolean restrictTile(int x, int y, BaseTile t){
-    if(getSet(x,y).contains(t)){
-      map.get(x).set(y, new HashSet<BaseTile>());
-      getSet(x,y).add(t);
-      return true;
-    }
-    else return false;
+    Set restTile = new HashSet<BaseTile>();
+    restTile.add(t);
+    return restrictTile(x,y,restTile);
   }
-  //restricts the Tile
+  //restricts the Tile at map[x][y] to only the intersection of map[x][y] and t
   public boolean restrictTile(int x, int y, Set<BaseTile> t){
-    Set copy = new HashSet<BaseTile>(getSet(x,y));
+    Set copy = new HashSet<BaseTile>(get(x,y));
     copy.retainAll(t);
+    if(copy.equals(t)) return false;
     if(!copy.isEmpty()){
-      getSet(x,y).retainAll(t);
+      get(x,y).retainAll(t);
       return true;
     }
     else return false;
@@ -527,6 +525,7 @@ class WorldGen extends Thread{
     
     void setup(){
       surface.setTitle("Debug - All Tiles");
+      textAlign(RIGHT,BOTTOM);
     }
     
     void draw(){
@@ -551,6 +550,8 @@ class WorldGen extends Thread{
           drawMap();
         break;
       }
+      fill(#000000);
+      text(frameRate,width,height);
     }
     
     void keyTyped(){
@@ -675,20 +676,30 @@ class WorldGen extends Thread{
     }
     
     void drawMap(){
+      imageMode(CORNER);
       PImage[][] imgMap = new PImage[map.size()][map.get(0).size()];
-      for(int x=0; x<imgMap.length; x++){
-        for(int y=0; y<imgMap[x].length; y++){
-          imgMap[x][y] = setImg(mapTileSize,map.get(x).get(y));
+      for(int x=0; x<map.size(); x++){
+        for(int y=0; y<map.get(0).size(); y++){
+          image(mapSetImg(mapTileSize,map.get(x).get(y)),x*mapTileSize,y*mapTileSize);
+          if(y!=0)line(0,y*mapTileSize,width,y*mapTileSize);
         }
+        if(x!=0)line(x*mapTileSize,0,x*mapTileSize,height);
       }
     }
-    PImage setImg(int size, Set<BaseTile> set){
+    
+    PImage mapSetImg(int size, Set<BaseTile> set){
       BaseTile[] arr = set.toArray(new BaseTile[0]);
       int imgsSize = ceil(sqrt(arr.length));
       PImage[][] imgs = new PImage[imgsSize][imgsSize];
       for(int i=0; i<arr.length; i++)
-        imgs[i%imgs.length][i/imgs.length]= arr[i].getTexture(0);
-      return null;
+        imgs[i%imgs.length][i/imgs.length]= flatResize(arr[i].getTexture(0),size);
+      PImage merge = createImage(size*imgs.length,size*imgs[0].length, ARGB);
+      for(int x=0; x<imgs.length; x++){
+        for(int y=0; y<imgs[x].length; y++){
+          if(imgs[x][y]!=null) merge.set(x*size,y*size,imgs[x][y]);
+        }
+      }
+      return flatResize(merge,size);
     }
   }
 }

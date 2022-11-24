@@ -9,13 +9,16 @@ void setup(){
   //size(200,200);
   rectMode(CORNERS);
   println(world.tileSet.parents().size(),world.tileSet.children().size());
-  
+  textAlign(RIGHT,BOTTOM);
+  fill(#000000);
 }
 
 void draw(){
+  background(#CCCCCC);
+  text(frameRate,width,height);
 }
 
 void keyPressed(){
-  if(key=='d') world.debug(48);
-  if(key=='c') world.createWorld(10,28);
+  if(key=='d') world.debug(96);
+  if(key=='c') world.createWorld(10,10);
 }

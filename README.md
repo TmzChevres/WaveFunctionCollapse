@@ -6,24 +6,25 @@ Nov 23, 2022
 
 ## Stuff to know
 ### Constructors:
-public WorldGen(String tileSetDir)
+**public WorldGen(String tileSetDir)**
 - Creates a worldGen using the directory at the specified location tileSetDir
 - ex. WorldGen world = new WorldGen("data/TileSets/Default") will use the JSON file at /data/TileSets/Default/config.json
 
-public WorldGen(File tileSetDir)
+**public WorldGen(File tileSetDir)**
 - Creates a worldGen using the directory tileSetDir (recomended)
 - ex. WolrdGen world = new WorldGen(new File("data/TileSets/Default")) will use the JSON file at /data/TileSets/Default/config.json
 
 
 ### Variables:
-TileSet tileSet
+**private TileSet tileSet**
 - Set of all possible BaseTiles to generate the world from
 - Loaded from a config.json file
 
-ArrayList\<ArrayList\<Set\<BaseTile\>\>\> map
+**private ArrayList\<ArrayList\<Set\<BaseTile\>\>\> map**
 - Matrix of Sets of tiles
 - Each Set contains all possible Tiles that can generate in that spot on the map
 - set.size()==1 represents a completely collapsed Tile, when the world is fully generated all sets in map will have a size of 1
+
 
 ### Methods:
 #### World Generation
@@ -56,12 +57,32 @@ To generate a world methods must be called in the following order order:
 
 **public boolean restrictTile(int x, int y, BaseTile t)**
 - Sets map[x][y] to a set of size==1 that contains only t
-- Returns false and does not run if map[x][y].contains(t)==false, true otherwise
+- Returns false and does not run if map[x][y] does not already contain t or if map[x][y] is unchanged, true otherwise
 
 **public boolean restrictTile(int x, int y, Set\<BaseTile\> t)**
 - Sets map[x][y] to the intersection of map[x][y] and t
-- Returns false and does not run if map[x][y] and t have no intersections, true otherwise
+- Returns false and does not run if map[x][y] and t have no intersections of if map[x][y] is unchanged, true otherwise
 
+#### Getting Tiles
+**public Set\<BaseTile\> getTileSet()**
+- Returns the set of all tiles
+
+**public Set\<BaseTile\> getTileSetByID(int id)**
+- Returns the set of all tiles with a matching id
+
+**public Set\<BaseTile\> getTileSetByName(String name)**
+- Returns the set of all tiles with a matching name
+
+**public Set\<BaseTile\> getTileSetByEdge(int up, int down, int left, int right)**
+- Returns the set of all tiles with the corresponding socket values
+**public Set\<BaseTile\> getTileSetByEdgeUp(int val)**
+- Returns the set of all tiles a matching up socket value
+**public Set\<BaseTile\> getTileSetByEdgeDown(int val)**
+- Returns the set of all tiles a matching down socket value
+**public Set\<BaseTile\> getTileSetByEdgeLeft(int val)**
+- Returns the set of all tiles a matching left socket value
+**public Set\<BaseTile\> getTileSetByEdgeRight(int val)**
+- Returns the set of all tiles a matching right socket value
 
 ## DEBUG MODE
 **IMPORTANT - size() must be called within settings() not setup() on the main tab of the sketch (or just delete the debugger)**
@@ -76,3 +97,4 @@ Display Screens:
    - Press shift + 'q'/'w'/'a'/'s'/'d' to cycle textures
    - Press ' ' to randomize all tiles (null excluded)
    - Press 'e' to randomize textures
+3. Displays map & all possible tile placements
