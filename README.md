@@ -33,32 +33,32 @@ To generate a world methods must be called in the following order order:
 3. OPTIONAL - generateTile(int x, int y)
 4. generateWorld()
 
-public boolean createWorld(int worldWidth, int worldHeight)
+**public boolean createWorld(int worldWidth, int worldHeight)**
 - Creates a matrix (ArrayList\<ArrayList\<Set\<BaseTile\>\>\> map) to generate the world in.
 - Each spot in map will contains the set of all BaseTiles (tileSet.getTileSet())
 - Returns false if the tileSet is not fully loaded yet or if it hits an error while generating, true otherwise
 
-public void addRow(), addRow(int i)
+**public void addRow(), addRow(int i)**
 - Adds a row to map at the end or at index i
 - Each spot in the new row will contain the set of all BaseTiles (tileSet.getTileSet())
 
-public void addCol(), addCol(int i)
+**public void addCol(), addCol(int i)**
 - Adds a column to map at the end or at index i
 - Each spot in the new column will contain the set of all BaseTiles (tileSet.getTileSet())
 
-public Set\<BaseTile\> get(int x, int y)
+**public Set\<BaseTile\> get(int x, int y)**
 - Returns the Set at map[x][y]
 - get(x,y) is the same thing as map.get(x).get(y)
 
-public Set\<BaseTile\> set(int x, int y, Set\<BaseTile\> tSet)
+**public Set\<BaseTile\> set(int x, int y, Set\<BaseTile\> tSet)**
 - Sets the Set at map[x][y] to tSet, returns the original value
 - set(x,y,tSet) is the same thing as map.get(x).set(y,tSet)
 
-public boolean restrictTile(int x, int y, BaseTile t)
+**public boolean restrictTile(int x, int y, BaseTile t)**
 - Sets map[x][y] to a set of size==1 that contains only t
 - Returns false and does not run if map[x][y].contains(t)==false, true otherwise
 
-public boolean restrictTile(int x, int y, Set\<BaseTile\> t)
+**public boolean restrictTile(int x, int y, Set\<BaseTile\> t)**
 - Sets map[x][y] to the intersection of map[x][y] and t
 - Returns false and does not run if map[x][y] and t have no intersections, true otherwise
 
