@@ -26,6 +26,7 @@ ArrayList\<ArrayList\<Set\<BaseTile\>\>\> map
 - set.size()==1 represents a completely collapsed Tile, when the world is fully generated all sets in map will have a size of 1
 
 ### Methods:
+#### World Generation
 To generate a world methods must be called in the following order order:
 1. createWorld(int worldWidth, int worldHeight)
 2. OPTIONAL - restrictTile(int x, int y, BaseTile t), addRow(), addRow(int i), addCol(), addCol(int i)
@@ -45,9 +46,21 @@ public void addCol(), addCol(int i)
 - Adds a column to map at the end or at index i
 - Each spot in the new column will contain the set of all BaseTiles (tileSet.getTileSet())
 
-public Set\<BaseTile\> getSet(int x, int y)
+public Set\<BaseTile\> get(int x, int y)
 - Returns the Set at map[x][y]
+- get(x,y) is the same thing as map.get(x).get(y)
 
+public Set\<BaseTile\> set(int x, int y, Set\<BaseTile\> tSet)
+- Sets the Set at map[x][y] to tSet, returns the original value
+- set(x,y,tSet) is the same thing as map.get(x).set(y,tSet)
+
+public boolean restrictTile(int x, int y, BaseTile t)
+- Sets map[x][y] to a set of size==1 that contains only t
+- Returns false and does not run if map[x][y].contains(t)==false, true otherwise
+
+public boolean restrictTile(int x, int y, Set\<BaseTile\> t)
+- Sets map[x][y] to the intersection of map[x][y] and t
+- Returns false and does not run if map[x][y] and t have no intersections, true otherwise
 
 
 ## DEBUG MODE

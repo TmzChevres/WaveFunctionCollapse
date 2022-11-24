@@ -6,7 +6,7 @@ import java.util.*;
 class WorldGen extends Thread{
   //Vars for loading tile set
   TileSet tileSet;
-  ArrayList<ArrayList<Set<BaseTile>>> map = new ArrayList<ArrayList<Set<BaseTile>>>();
+  ArrayList<ArrayList<Set<BaseTile>>> map;
   
   //Standard constructor using String for file directory
   public WorldGen(String tileSetDir){
@@ -21,6 +21,7 @@ class WorldGen extends Thread{
   //returns false if tileSet is not loaded (and will not generate map), true otherwise
   public boolean createWorld(int worldWidth, int worldHeight){
     if(!tileSet.loaded) return false;
+    map = new ArrayList<ArrayList<Set<BaseTile>>>();
     try{
     for(int x=0; x<worldWidth; x++){
       map.add(new ArrayList<Set<BaseTile>>());
@@ -39,15 +40,11 @@ class WorldGen extends Thread{
   public Set<BaseTile> getSet(int x, int y){
     return map.get(x).get(y);
   }
-  //restricts the Tile at [x][y] to a single state
-  public boolean restrictTile(int x, int y, BaseTile t){
-    if(getSet(x,y).contains(t)){
-      map.get(x).set(y, new HashSet<BaseTile>());
-      getSet(x,y).add(t);
-      return true;
-    }
-    else return false;
+  //sets the value at map[x][y] 
+  public Set<BaseTile> setSet(int x, int y, Set<BaseTile> tSet){
+    return map.get(x).set(y,tSet);
   }
+  
   //adds a row of tileSets to map
   public void addRow(){
     for(ArrayList<Set<BaseTile>> arr : map){
@@ -76,6 +73,27 @@ class WorldGen extends Thread{
     }
     map.add(i,newArr);
   }
+  
+  //restricts the Tile at [x][y] to a single state
+  public boolean restrictTile(int x, int y, BaseTile t){
+    if(getSet(x,y).contains(t)){
+      map.get(x).set(y, new HashSet<BaseTile>());
+      getSet(x,y).add(t);
+      return true;
+    }
+    else return false;
+  }
+  //restricts the Tile
+  public boolean restrictTile(int x, int y, Set<BaseTile> t){
+    Set copy = new HashSet<BaseTile>(getSet(x,y));
+    copy.retainAll(t);
+    if(!copy.isEmpty()){
+      getSet(x,y).retainAll(t);
+      return true;
+    }
+    else return false;
+  }
+  
   
   //TILESET CLASS-----------------------------------------------------------------------------------------------------------------------------------------------------
   private class TileSet extends Thread{
@@ -481,6 +499,7 @@ class WorldGen extends Thread{
       Press shift + q/w/a/s/d to cycle textures
       Press ' ' to randomize tiles (null tile excluded)
       Press 'e' to randomize textures
+    3.Displays map & all possible tiles
     
   */
   Debug debug = new Debug();
@@ -491,21 +510,23 @@ class WorldGen extends Thread{
   }
   public class Debug extends PApplet{
     public int tileSize = 12;
+    private int mapTileSize = 12;//tileSize used in display mode 3 (if normal one is too big)
     public int display=0;
     //PApplet stuff
     PImage debugTiles;
-    
+    private final int yMargin=80;
     @Override
     void settings(){
-      debugTiles = debugTiles(tileSize);
-      int debugH = tileSize * int((displayHeight-100)/tileSize);
-      if(debugTiles.height < debugH) debugH=debugTiles.height;
-      size(debugTiles.width * (1 + (int)debugTiles.height/(displayHeight-100)),debugTiles.height);
+      debugTiles = debugTiles(tileSize); //<>//
+      int debugH = tileSize * int((displayHeight-yMargin)/tileSize);
+      if(debugTiles.height < debugH)
+        debugH=debugTiles.height;
+      size(debugTiles.width * (1 + (int)debugTiles.height/(displayHeight-yMargin)),debugH);
       println(height);
     }
     
     void setup(){
-      //surface.setResizable(true);
+      surface.setTitle("Debug - All Tiles");
     }
     
     void draw(){
@@ -526,6 +547,9 @@ class WorldGen extends Thread{
         case 1:
           drawAdjacent();
         break;
+        case 2:
+          drawMap();
+        break;
       }
     }
     
@@ -533,16 +557,30 @@ class WorldGen extends Thread{
       switch(key){
         case '1':
           display=0;
-          int debugH = tileSize * int((displayHeight-100)/tileSize);
+          int debugH = tileSize * int((displayHeight-yMargin)/tileSize);
           if(debugTiles.height < debugH) debugH=debugTiles.height;
-          surface.setSize(debugTiles.width * (1 + (int)debugTiles.height/(displayHeight-100)),debugTiles.height);
+          surface.setSize(debugTiles.width * (1 + (int)debugTiles.height/(displayHeight-yMargin)),debugH);
+          surface.setTitle("Debug - All Tiles");
         break;
         case '2':
           display=1;
           surface.setSize(tileSize*3,tileSize*3);
+          surface.setTitle("Debug - Tile Adjacencies");
+        break;
+        case '3':
+          if(map!=null){
+            display=2;
+            mapTileSize = tileSize;
+            if(map.get(0).size()*tileSize > displayHeight-yMargin || map.size()*tileSize > displayWidth){
+              if((displayHeight-yMargin)/map.get(0).size() < displayWidth/map.size()) mapTileSize=(displayHeight-yMargin)/map.get(0).size();
+              else mapTileSize=displayWidth/map.size();
+            }
+            surface.setSize(map.size()*tileSize,map.get(0).size()*mapTileSize);
+            surface.setTitle("Debug - map");
+          }
         break;
       }
-      switch(display){
+      switch(display){ //<>//
         case 1:
           if(key=='q') tileIndex[0][0]++;
           if(key=='w') tileIndex[1][0]++;
@@ -634,6 +672,23 @@ class WorldGen extends Thread{
       set = tiles.get(tileIndex[0][0]%tiles.size()).neighbors[3];
       t = set.toArray(new WorldGen.BaseTile[0])[tileIndex[4][0]%set.size()];
       image(t.getTexture(tileIndex[4][1]%t.textures.length,width/3),2*width/3,height/3,width/3+1,height/3); 
+    }
+    
+    void drawMap(){
+      PImage[][] imgMap = new PImage[map.size()][map.get(0).size()];
+      for(int x=0; x<imgMap.length; x++){
+        for(int y=0; y<imgMap[x].length; y++){
+          imgMap[x][y] = setImg(mapTileSize,map.get(x).get(y));
+        }
+      }
+    }
+    PImage setImg(int size, Set<BaseTile> set){
+      BaseTile[] arr = set.toArray(new BaseTile[0]);
+      int imgsSize = ceil(sqrt(arr.length));
+      PImage[][] imgs = new PImage[imgsSize][imgsSize];
+      for(int i=0; i<arr.length; i++)
+        imgs[i%imgs.length][i/imgs.length]= arr[i].getTexture(0);
+      return null;
     }
   }
 }

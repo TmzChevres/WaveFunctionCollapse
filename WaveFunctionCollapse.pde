@@ -16,6 +16,6 @@ void draw(){
 }
 
 void keyPressed(){
-  if(key=='d') world.debug(24);
-  if(key=='c') world.createWorld(10,10);
+  if(key=='d') world.debug(48);
+  if(key=='c') world.createWorld(10,28);
 }
