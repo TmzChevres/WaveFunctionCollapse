@@ -63,9 +63,24 @@ To generate a world methods must be called in the following order order:
 - Sets map[x][y] to the intersection of map[x][y] and t
 - Returns false and does not run if map[x][y] and t have no intersections of if map[x][y] is unchanged, true otherwise
 
+**public boolean generateTile(int x, int y)**
+- Sets map[x][y] to one random tile in the original map[x][y]
+- Returns false if map[x][y] does not change, true otherwise
+
+**public boolean generateWorld()**
+- Generates the entire world
+- Returns false if the world is already generated
+
+**public boolean generated()**
+- Returns true if the world is completely generated (every Set in map has size==1)
+- Returns false if createWorld() has not been called yet
+
 #### Getting Tiles
 **public Set\<BaseTile\> getTileSet()**
 - Returns the set of all tiles
+
+**public Set\<BaseTile\> getRealTileSet()**
+- Returns the set of all tiles with a weight >= 1
 
 **public Set\<BaseTile\> getTileSetByID(int id)**
 - Returns the set of all tiles with a matching id

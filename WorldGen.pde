@@ -7,6 +7,7 @@ class WorldGen extends Thread{
   //Vars for loading tile set
   private TileSet tileSet;
   private ArrayList<ArrayList<Set<BaseTile>>> map;
+  public final static int UP=0, DOWN=1, LEFT=2, RIGHT=3;
   
   //Standard constructor using String for file directory
   public WorldGen(String tileSetDir){
@@ -21,13 +22,15 @@ class WorldGen extends Thread{
   //creates an empty array for the world
   //returns false if tileSet is not loaded (and will not generate map), true otherwise
   public boolean createWorld(int worldWidth, int worldHeight){
+    if(worldWidth<1) worldWidth=1;
+    if(worldHeight<1) worldHeight=1;
     if(!tileSet.loaded) return false;
     map = new ArrayList<ArrayList<Set<BaseTile>>>();
     try{
     for(int x=0; x<worldWidth; x++){
       map.add(new ArrayList<Set<BaseTile>>());
       for(int y=0; y<worldHeight; y++){
-        map.get(x).add(tileSet.getTileSet());
+        map.get(x).add(getRealTileSet());
       }
     }
     return true;
@@ -49,12 +52,12 @@ class WorldGen extends Thread{
   //adds a row of tileSets to map
   public void addRow(){
     for(ArrayList<Set<BaseTile>> arr : map){
-      arr.add(tileSet.getTileSet());
+      arr.add(getRealTileSet());
     }
   }
   public void addRow(int i){
     for(ArrayList<Set<BaseTile>> arr : map){
-      arr.add(i,tileSet.getTileSet());
+      arr.add(i,getRealTileSet());
     }
   }
   //adds a column of tileSets to map
@@ -62,7 +65,7 @@ class WorldGen extends Thread{
     int len = map.get(0).size();
     ArrayList<Set<BaseTile>> newArr = new ArrayList<Set<BaseTile>>();
     for(int i=0; i<len; i++){
-      newArr.add(tileSet.getTileSet());
+      newArr.add(getRealTileSet());
     }
     map.add(newArr);
   }
@@ -70,7 +73,7 @@ class WorldGen extends Thread{
     int len = map.get(0).size();
     ArrayList<Set<BaseTile>> newArr = new ArrayList<Set<BaseTile>>();
     for(int j=0; j<len; j++){
-      newArr.add(tileSet.getTileSet());
+      newArr.add(getRealTileSet());
     }
     map.add(i,newArr);
   }
@@ -88,21 +91,101 @@ class WorldGen extends Thread{
     if(copy.equals(get(x,y))) return false;
     if(!copy.isEmpty()){
       get(x,y).retainAll(t);
+      
+      //recursivly restrict adjacent tiles
+      if(y>0){ //UP
+        Set<BaseTile> adj = new HashSet<BaseTile>();
+        for(BaseTile baseTile:get(x,y)) adj.addAll(baseTile.getNeighbors(UP));
+        restrictTile(x,y-1,adj);
+      }
+      if(y<map.get(0).size()-1){ //DOWN
+        Set<BaseTile> adj = new HashSet<BaseTile>();
+        for(BaseTile baseTile:get(x,y)) adj.addAll(baseTile.getNeighbors(DOWN));
+        restrictTile(x,y+1,adj);
+      }
+      if(x>0){ //LEFT
+        Set<BaseTile> adj = new HashSet<BaseTile>();
+        for(BaseTile baseTile:get(x,y)) adj.addAll(baseTile.getNeighbors(LEFT));
+        restrictTile(x-1,y,adj);
+      }
+      if(x<map.size()-1){ //RIGHT
+        Set<BaseTile> adj = new HashSet<BaseTile>();
+        for(BaseTile baseTile:get(x,y)) adj.addAll(baseTile.getNeighbors(RIGHT));
+        restrictTile(x+1,y,adj);
+      }
       return true;
     }
     else return false;
   }
+  //randomly limits map[x][y] to one tile
   public boolean generateTile(int x, int y){
-    return false;
+    BaseTile[] arr = get(x,y).toArray(new BaseTile[0]);
+    ArrayList<BaseTile> weightArr= new ArrayList<BaseTile>();
+    for(BaseTile t:arr) for(int i=0; i<t.weight; i++) weightArr.add(t);
+    //if the are no possible tiles w/wight>0, use 0-weight tile
+    if(weightArr.size()==0) for(BaseTile t:arr) weightArr.add(t);
+    return restrictTile(x,y,weightArr.get((int)random(weightArr.size()))); //<>//
   }
+  //randomly generates the rest of map - RUN AS A SEPERATE THREAD TO REDUCE POTENTIAL LAG
+  //Selects the tile with min possible states (random if multiple are the same), collapses it, and repeats
   public boolean generateWorld(){
-    return false;
+    if(generated()) return false;
+    else if(!calledThread){
+      start();
+    }
+    else generateWorldThread();
+    return true;
+  }
+  public void run(){
+    generateWorldThread();
+    interrupt();
+  }
+  private boolean calledThread = false; //thread can not be called multiple times for the same instance
+  private boolean generateWorldThread(){
+    if(generated()) return false;
+    calledThread=true;
+    while(!generated()){
+      //find tile with min possible state
+      int minProb = Integer.MAX_VALUE;
+      ArrayList<Integer[]> minPos = new ArrayList<Integer[]>();
+      for(int x=0; x<map.size(); x++){
+        for(int y=0; y<map.get(0).size(); y++){
+          if(get(x,y).size()>1 && get(x,y).size()<minProb){
+            minPos.clear();
+            minPos.add(new Integer[]{x,y});
+            minProb=get(x,y).size();
+          }
+          if(get(x,y).size()>1 && get(x,y).size()==minProb){
+            minPos.add(new Integer[]{x,y});
+            minProb=get(x,y).size();
+          }
+        }
+      }
+      Collections.shuffle(minPos);
+      generateTile(minPos.get(0)[0],minPos.get(0)[1]);
+      //delay(1000);
+    }
+    return true;
+  }
+  //returns ture if the world is fully generated (all Sets in map have size==1)
+  public boolean generated(){
+    if(map==null) return false;
+    for(ArrayList<Set<BaseTile>> arr:map)
+      for(Set<BaseTile> set:arr)
+        if(set.size()!=1) return false;
+    return true;
   }
   
   //TILE SELECTION METHODS
   //returns the set of all tiles
   public Set<BaseTile> getTileSet(){
     return tileSet.getTileSet();
+  }
+  //returns the set of all tiles with a weight>=1
+  public Set<BaseTile> getRealTileSet(){
+    Set<BaseTile> out = new HashSet<BaseTile>();
+    for(BaseTile t:tileSet.getTileSet()) if(t.weight>=0) out.add(t);
+    return out;
   }
   //returns the set of all tiles with a matching id
   public Set<BaseTile> getTileSetByID(int id){
@@ -308,8 +391,7 @@ class WorldGen extends Thread{
     protected boolean rotate = false;//can create a child Tile by rotating
     
     protected BaseTile parent = null; //if the tile is a mirrored version of another, parent is the original
-    protected Set<BaseTile>[] neighbors = new HashSet[4]; //set of all tiles that can be adjacent to this tile
-    public final static int UP=0, DOWN=1, LEFT=2, RIGHT=3;
+    protected Set<BaseTile>[] neighbors = new HashSet[4]; //set of all tiles that can be adjacent to this tile (order: up,down,left,right)
     
     public BaseTile(JSONObject tileObject, File tileSetDir){
       //reading values
@@ -460,6 +542,7 @@ class WorldGen extends Thread{
       }
     }
     
+    //generates the sets of possible adjacent tiles
     private void generateNeighbors(ArrayList<BaseTile> tiles){
       neighbors[UP] = new HashSet<BaseTile>();
       neighbors[DOWN] = new HashSet<BaseTile>();
@@ -472,6 +555,10 @@ class WorldGen extends Thread{
         if(edgeLeft == t.edgeRight) neighbors[LEFT].add(t);
         if(edgeRight == t.edgeLeft) neighbors[RIGHT].add(t);
       }
+    }
+    //returns the set of neighbors in a given direction
+    public Set<BaseTile> getNeighbors(int direction){
+      return neighbors[direction];
     }
     
     //------------
@@ -539,6 +626,8 @@ class WorldGen extends Thread{
       Press ' ' to randomize tiles (null tile excluded)
       Press 'e' to randomize textures
     3.Displays map & all possible tiles
+      Press ' ' to randomly generate the tile at mouseX,mouseY
+      Click on the map to generate the selected sub-tile
     
   */
   Debug debug = new Debug();
@@ -561,7 +650,6 @@ class WorldGen extends Thread{
       if(debugTiles.height < debugH)
         debugH=debugTiles.height;
       size(debugTiles.width * (1 + (int)debugTiles.height/(displayHeight-yMargin)),debugH);
-      println(height);
     }
     
     void setup(){
@@ -617,7 +705,7 @@ class WorldGen extends Thread{
               if((displayHeight-yMargin)/map.get(0).size() < displayWidth/map.size()) mapTileSize=(displayHeight-yMargin)/map.get(0).size();
               else mapTileSize=displayWidth/map.size();
             }
-            surface.setSize(map.size()*tileSize,map.get(0).size()*mapTileSize);
+            surface.setSize(map.size()*mapTileSize,map.get(0).size()*mapTileSize);
             surface.setTitle("Debug - map");
           }
         break;
@@ -647,15 +735,20 @@ class WorldGen extends Thread{
             }
           }
         break;
+        case 2:
+          if(key==' ') generateTile(getClickLocation(mouseX,mouseY)[0],getClickLocation(mouseX,mouseY)[1]);
+        break;
       }
     }
     
     void mouseClicked(){
       switch(display){
         case 2:
+          println(getClickLocation(mouseX,mouseY)[0],getClickLocation(mouseX,mouseY)[1]);
+        break;
       }
     }
-    
+        
     public PImage debugTiles(int tileSize /*pixel height of each tile texture*/){
       //Create an image with all tiles and variations
       List<BaseTile> parents = tileSet.parents();
@@ -726,11 +819,19 @@ class WorldGen extends Thread{
       imageMode(CORNER);
       for(int x=0; x<map.size(); x++){
         for(int y=0; y<map.get(0).size(); y++){
-          image(mapSetImg(mapTileSize,map.get(x).get(y)),x*mapTileSize,y*mapTileSize);
+          try{image(mapSetImg(mapTileSize,map.get(x).get(y)),x*mapTileSize,y*mapTileSize);}
+          catch(IndexOutOfBoundsException e){}
           if(y!=0)line(0,y*mapTileSize,width,y*mapTileSize);
         }
         if(x!=0)line(x*mapTileSize,0,x*mapTileSize,height);
       }
+    }
+    //gets the map location {x,y} or a mouseClick
+    int[] getClickLocation(float x, float y){
+      if(0<=x && x<width && 0<=y && y<height){
+        return new int[]{int(map.size() * x/width),int(map.get(0).size() * y/height)};
+      }
+      else return new int[]{-1,-1};
     }
     
     PImage mapSetImg(int size, Set<BaseTile> set){
